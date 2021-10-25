@@ -1,0 +1,41 @@
+{
+  "name": "@agencebio/rpg-cli",
+  "description": "Transforme le Registre Parcellaire Graphique (RPG) Bio tel que communiqué par l'Agence de Services et de Paiement (ASP) en une version anonymisée — publiable en open data.",
+  "version": "1.0.0",
+  "main": "./bin/export",
+  "bin": "./bin/export",
+  "scripts": {
+    "postinstall": "npm run download:admin-boundaries",
+    "build": "./bin/export",
+    "download:admin-boundaries": "npm run download:admin-regions && npm run download:admin-departements && npm run download:admin-communes",
+    "download:admin-communes": "wget -O data/communes.geojson https://github.com/gregoiredavid/france-geojson/raw/v2.1.1/communes.geojson",
+    "download:admin-epci": "wget -O data/epci.json https://unpkg.com/@etalab/decoupage-administratif@0.9.0-0/data/epci.json",
+    "download:admin-departements": "wget -O data/departements-avec-outre-mer.geojson https://github.com/gregoiredavid/france-geojson/raw/v2.1.1/departements-avec-outre-mer.geojson",
+    "download:admin-regions": "wget -O data/regions-avec-outre-mer.geojson https://github.com/gregoiredavid/france-geojson/raw/v2.1.1/regions-avec-outre-mer.geojson",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AgenceBio/rpg-cli.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/AgenceBio/rpg-cli/issues"
+  },
+  "homepage": "https://github.com/AgenceBio/rpg-cli#readme",
+  "dependencies": {
+    "@mapbox/geojson-area": "^0.2.2",
+    "@sindresorhus/slugify": "^1.1.2",
+    "@turf/helpers": "^6.5.0",
+    "gdal-next": "^2.8.0",
+    "geojson-stream": "^0.1.0",
+    "geojson2shp": "^0.4.0",
+    "globby": "^11.0.4",
+    "listr": "^0.14.3",
+    "minimist": "^1.2.5",
+    "ora": "^5.4.1",
+    "worker-farm": "^1.7.0"
+  }
+}
