@@ -28,6 +28,7 @@ const argv = require('minimist')(process.argv.slice(2), {
   default: {
     name: '',
     insee: '',
+    epci: '',
     departement: '',
     region: '',
     radius: null,
@@ -41,16 +42,17 @@ const workerFarm = require('worker-farm')
 const shapefileWorker = require.resolve('../src/shapefile.js')
 const extract = promisify(workerFarm({maxConcurrentCallsPerWorker: CPU_COUNT, maxRetries: 0}, shapefileWorker))
 
-const {departements, regions, src:SOURCE_FILES} = argv
+const {departements, regions, epci, src:SOURCE_FILES} = argv
 const {millesime, name, prefix} = argv
 
 const LAMBERT_93 = 2154
 const WGS84 = 4326
 let DESTINATION_FILE = null
 
-if (!SOURCE_FILES || (!Number.isInteger(millesime) || millesime < 2017) || (!regions && !departements)) {
-  console.error('npm run build -- --millesime 2019 --src "../RPG/2019/d064/*.shp" --regions 75 --regions 01')
-  console.error('npm run build -- --millesime 2019 --src "../RPG/2019/{d026,d007}/*.shp" --departements 26 --departements 7')
+if (!SOURCE_FILES || (!Number.isInteger(millesime) || millesime < 2017) || (!epci && !regions && !departements)) {
+  console.error('npm run build -- --millesime 2020 --src "../RPG/2019/d064/*.shp" --regions 75 --regions 01')
+  console.error('npm run build -- --millesime 2020 --src "../RPG/2019/{d026,d007}/*.shp" --departements 26 --departements 7')
+  console.error('npm run build -- --millesime 2020 --src "../RPG/2019/{d026,d007}/*.shp" --epci 243100518')
   process.exit(1)
 }
 
@@ -125,7 +127,7 @@ class filterIncomingFeatures extends Transform {
  * 1. WGS84 GeoJSON
  * 2. User provided files projection, or Lambert93 otherwise
  */
-async function run ({ scope, departement, region }) {
+async function run ({ scope, departement, region, epci }) {
   const start = process.hrtime.bigint()
   const wgs84 = gdal.SpatialReference.fromProj4('+init=epsg:4326')
 
@@ -144,7 +146,7 @@ async function run ({ scope, departement, region }) {
     spinner: 'simpleDotsScrolling'
   }).start()
 
-  // 1.a Filter by EPCI or Insee Code boundaries
+  // 1.a Filter by Region
   if (scope === 'region') {
     const code = region.padStart(2, '0')
 
@@ -171,7 +173,38 @@ async function run ({ scope, departement, region }) {
     DESTINATION_FILE = DESTINATION_FILE ?? `${prefix}${millesime}-${slugify(name) || `d${code}`}`
   }
 
+  // 1.c Or, filter by Insee Code — individual, or EPCI (COG Insee Code)
+  else if (scope === 'epci' || scope === 'insee') {
+    let codes = []
+
+    if (epci) {
+      const list = await readFile(join(__dirname, '..', 'data', 'epci.json'), {encoding: 'utf8'}).then((json) => JSON.parse(json))
+
+      const { nom, membres } = list.find(({ code }) => code === String(epci))
+      const inseeCodes = membres.map(m => m.code)
+      codes.push(...inseeCodes)
+
+      DESTINATION_FILE = DESTINATION_FILE ?? `${prefix}${millesime}-${slugify(nom) || `epci-${epci}`}`
+    }
+    else if (insee) {
+      codes.push(insee)
+      DESTINATION_FILE = DESTINATION_FILE ?? `${prefix}${millesime}-${slugify(name) || `insee-${insee}`}`
+    }
+
+    let features = await getFeaturesByProperty({
+      collection: readFile(join(__dirname, '..', 'data', 'communes.geojson'), {encoding: 'utf8'}).then((json) => JSON.parse(json)),
+      comparisonFn: (properties) => codes.includes(properties.code)
+    })
+
+    pushFeaturesIntoDataset({ features, datasets, crs: wgs84 })
+    DESTINATION_FILE = DESTINATION_FILE ?? `${prefix}${millesime}-${slugify(name) || `d${code}`}`
+  }
+
   // 2.a Collect source files projection
+  if (!Array.isArray(sourceFiles) || sourceFiles.length === 0) {
+    throw new Error('--src pattern does not match any Shapefile.')
+  }
+
   const firstSourceFile = gdal.open(sourceFiles[0], 'r')
   const {srs: sourceProjection} = firstSourceFile.layers.get(0)
   const {srs: exportProjection} = datasets[0].layers.get(0)
@@ -251,7 +284,7 @@ async function run ({ scope, departement, region }) {
       const time = new Intl.NumberFormat('en-EN', { style: 'unit', unit: 'minute' }).format(timediff / BigInt(1e9) / BigInt(60))
 
       task.title = `Export performed in ${time}`
-      return unlink(uploadDir('input.gpkg'))
+      //return unlink(uploadDir('input.gpkg'))
     }
   })
 
@@ -262,6 +295,7 @@ async function run ({ scope, departement, region }) {
 const scopes = [].concat(
   (Array.isArray(regions) ? regions : [regions]).filter(d => d).map(region => ({ scope: 'region', region })),
   (Array.isArray(departements) ? departements : [departements]).filter(d => d).map(departement => ({ scope: 'departement', departement })),
+  (Array.isArray(epci) ? epci : [epci]).filter(d => d).map(epci => ({ scope: 'epci', epci })),
 )
 
 const asyncRun = {
