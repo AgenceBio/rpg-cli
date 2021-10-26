@@ -312,6 +312,10 @@ const asyncRun = {
       }
     }
   }
-}
+};
 
-asyncRun[Symbol.asyncIterator]().next()
+(async () => {
+  for await (let run of asyncRun) {}
+
+  process.exit(0)
+})()
