@@ -1,4 +1,4 @@
-# `@agencebio/rpg-cli`
+# `@agencebio/rpg-cli` [![.github/workflows/main.yml](https://github.com/AgenceBio/rpg-cli/actions/workflows/main.yml/badge.svg)](https://github.com/AgenceBio/rpg-cli/actions/workflows/main.yml)
 
 Transforme le Registre Parcellaire Graphique (RPG) Bio tel que communiqué par l'Agence de Services et de Paiement (ASP) en une version anonymisée — publiable en open data.
 
