@@ -2,7 +2,7 @@
 // const {sourceFile, filteringFeatures} = workerData
 const gdal = require('gdal-next')
 const { createHash } = require('crypto')
-const { fromCode } = require('../../front/src/modules/codes-cultures/pac.js')
+const { fromCode } = require('./pac.js')
 const { geometry: area } = require('@mapbox/geojson-area')
 
 const IN_HECTARES = 10000

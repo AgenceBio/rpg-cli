@@ -13,9 +13,8 @@ npm install
 Génère un fichier par région demandée.
 
 ```sh
-npm run build -- --src /path/to/rpg-bio --millesime 2020 --regions all
-npm run build -- --src /path/to/rpg-bio --millesime 2020 --regions 75
-npm run build -- --src /path/to/rpg-bio --millesime 2020 --regions 75 --regions 53
+npm run build -- --src /path/to/rpg-bio --millesime 2020 --region 75
+npm run build -- --src /path/to/rpg-bio --millesime 2020 --region 75 --region 53
 ```
 
 | Code | Libellé
@@ -49,9 +48,8 @@ npm run build -- --src /path/to/rpg-bio --millesime 2020 --regions 75 --regions 
 Génère un fichier par département demandé.
 
 ```sh
-npm run build -- --src /path/to/rpg-bio --millesime 2020 --departements all
-npm run build -- --src /path/to/rpg-bio --millesime 2020 --departements 26
-npm run build -- --src /path/to/rpg-bio --millesime 2020 --departements 26 --departements 07
+npm run build -- --src /path/to/rpg-bio --millesime 2020 --departement 26
+npm run build -- --src /path/to/rpg-bio --millesime 2020 --departement 26 --departement 07
 ```
 
 | Code | Libellé
