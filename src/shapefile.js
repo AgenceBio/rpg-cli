@@ -50,7 +50,7 @@ function extractFeatures({sourceFile, filteringFeatures, millesime: MILLESIME}) 
   while (feature = layer.features.next()) {
     const fields = feature.fields.toObject()
     const {BIO, bio, CODE_CULTU, codecultu} = fields
-    const {SURF_ADM, MARAICHAGE, AGROFOREST, PACAGE, pacage} = fields
+    const {SURF_ADM, MARAICHAGE, AGROFOREST, PACAGE} = fields
     const {label: LBL_CULTU, groupLabel: GRP_CULTU} = fromCode(CODE_CULTU ?? codecultu)
 
     const geometry = getWGS84Geometry(feature)
@@ -73,6 +73,7 @@ function extractFeatures({sourceFile, filteringFeatures, millesime: MILLESIME}) 
     }
 
     const privateProperties = {
+      PACAGE,
       NUM_ILOT: fields.numilot ?? fields.NUM_ILOT,
       NUM_PARCEL: fields.numparcel ?? fields.NUM_PARCEL
     }
