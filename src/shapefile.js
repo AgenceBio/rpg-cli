@@ -10,12 +10,7 @@ const wgs84 = gdal.SpatialReference.fromProj4('+init=epsg:4326')
 
 function createIdFromHash(object) {
   const buffer = Buffer.from(JSON.stringify(object))
-  return createHash('sha256').update(buffer).digest('hex')
-}
-
-function toShortSha512(string) {
-  const buffer = Buffer.from(string)
-  return createHash('sha512').update(buffer).digest('hex').slice(0, 48)
+  return createHash('sha256').update(buffer).digest('hex').slice(0, 32)
 }
 
 function extractFeatures({sourceFile, filteringFeatures, millesime: MILLESIME}) {
@@ -60,11 +55,9 @@ function extractFeatures({sourceFile, filteringFeatures, millesime: MILLESIME}) 
 
     const geometry = getWGS84Geometry(feature)
     const SURFACE_HA = parseFloat(area(geometry) / IN_HECTARES).toFixed(2)
-    const ANON_ID = toShortSha512(pacage ?? PACAGE)
 
     const properties = {
       // Computed fields
-      ANON_ID,
       MILLESIME,
       //
       BIO: parseInt(BIO ?? bio, 10),
@@ -86,7 +79,7 @@ function extractFeatures({sourceFile, filteringFeatures, millesime: MILLESIME}) 
 
     features.push({
       type: 'Feature',
-      id: createIdFromHash({ ANON_ID, ...privateProperties }),
+      id: createIdFromHash({ ...privateProperties }),
       geometry,
       properties
     })
